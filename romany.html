@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Romany Youssef 3.5 - ChatGPT Style</title>
+    <style>
+        /* تنسيقات تحاكي ChatGPT (Dark Mode) */
+        :root {
+            --bg-color: #343541;
+            --chat-box-bg: #444654;
+            --text-color: #ececf1;
+            --input-bg: #40414f;
+            --border-color: #565869;
+        }
+
+        body {
+            font-family: 'Söhne', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            direction: rtl;
+            text-align: right;
+            overflow: hidden;
+        }
+
+        .main-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: var(--bg-color);
+        }
+
+        /* إعدادات الخلفية */
+        .main-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('rr.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain; 
+            opacity: 0.5;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .chat-header {
+            background-color: rgba(52, 53, 65, 0.9);
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            z-index: 1;
+            backdrop-filter: blur(5px);
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            font-weight: normal;
+            color: #d1d5db;
+        }
+
+        #chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            z-index: 1;
+            padding-bottom: 100px;
+        }
+
+        .message-row {
+            width: 100%;
+            padding: 20px 0;
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .message-row.bot-row {
+            background-color: rgba(68, 70, 84, 0.85);
+        }
+
+        .message-row.user-row {
+            background-color: rgba(52, 53, 65, 0.7);
+        }
+
+        .message-content {
+            width: 100%;
+            max-width: 768px;
+            padding: 0 20px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8em;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            background-color: #5436da;
+            color: white;
+        }
+
+        .bot-avatar {
+            background-color: #19c37d;
+            color: white;
+        }
+
+        .text-content {
+            line-height: 1.6;
+            font-size: 1em;
+            margin-top: 3px;
+            white-space: pre-wrap; 
+            min-height: 20px; /* لمنع الانهيار قبل الكتابة */
+        }
+
+        .input-area-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(53,53,65,0), var(--bg-color) 40%);
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 768px;
+            position: relative;
+            background-color: var(--input-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+        }
+
+        #user-input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            resize: none;
+            max-height: 200px;
+            outline: none;
+            padding: 5px 10px;
+            font-family: inherit;
+            font-size: 1em;
+            line-height: 1.5;
+            direction: rtl;
+        }
+
+        #send-button {
+            background-color: transparent;
+            border: none;
+            color: #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        #send-button:hover {
+            color: white;
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        #send-button:disabled {
+            color: #565869;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: none;
+            text-align: center;
+            color: #888;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+
+        /* تنسيق النصوص */
+        .text-content b { color: #fff; font-weight: 700; }
+        .text-content pre {
+            background-color: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .text-content code {
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .cursor-blink {
+            display: inline-block;
+            width: 5px;
+            height: 18px;
+            background-color: #19c37d;
+            animation: blink 1s infinite;
+            vertical-align: sub;
+            margin-right: 2px;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .message-content { padding: 0 10px; }
+            .input-area-container { padding: 15px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="chat-header">
+            <h3>Romany Youssef 3.5</h3>
+        </div>
+
+        <div id="chat-box">
+            <div class="message-row bot-row">
+                <div class="message-content">
+                    <div class="avatar bot-avatar">R</div>
+                    <div class="text-content">أهلاً بك! أنا Romany Youssef 3.5. كيف يمكنني مساعدتك اليوم؟</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area-container">
+            <div style="width: 100%; max-width: 768px;">
+                <div class="typing-indicator" id="typing-indicator">جاري التفكير...</div>
+                <div class="input-wrapper">
+                    <textarea id="user-input" placeholder="أرسل رسالة..." rows="1"></textarea>
+                    <button id="send-button">
+                        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <div style="text-align: center; font-size: 0.7em; color: #888; margin-top: 10px;">
+                    Romany Youssef 3.5 may produce inaccurate information.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        //  مفتاح API
+        // ==========================================
+        const GEMINI_API_KEY = 'AIzaSyBzUf14v9_Z3QzEk2B2l7lT1rWrfvdFLjk'; 
+        // ==========================================
+
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        const MODEL_NAME = 'gemini-2.5-flash';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
+        
+        let conversationHistory = [];
+
+        // دالة كتابة ذكية وآمنة
+        function typeWriter(element, text, speed = 10) {
+            let i = 0;
+            let buffer = ""; // مخزن للنص المعروض
+            
+            function type() {
+                if (i < text.length) {
+                    const char = text.charAt(i);
+
+                    // إذا وجدنا بداية تاج HTML (مثل <br> أو <b>)
+                    if (char === '<') {
+                        let tag = '';
+                        // نسحب التاج بالكامل حتى نهايته
+                        while (i < text.length && text.charAt(i) !== '>') {
+                            tag += text.charAt(i);
+                            i++;
+                        }
+                        // إضافة علامة الإغلاق >
+                        if (i < text.length && text.charAt(i) === '>') {
+                            tag += '>';
+                            i++;
+                        }
+                        buffer += tag; // إضافة التاج بالكامل للمخزن
+                    } else {
+                        // حرف عادي
+                        buffer += char;
+                        i++;
+                    }
+
+                    // تحديث المحتوى
+                    element.innerHTML = buffer + '<span class="cursor-blink"></span>';
+                    
+                    // تمرير الشاشة
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    window.scrollTo(0, document.body.scrollHeight);
+                    
+                    setTimeout(type, speed);
+                } else {
+                    // عند الانتهاء نحذف المؤشر
+                    element.innerHTML = buffer;
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                    userInput.focus();
+                }
+            }
+            type();
+        }
+
+        function displayMessage(text, sender, animate = false) {
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('message-row');
+            rowDiv.classList.add(sender + '-row');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content');
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.classList.add('avatar');
+            if (sender === 'user') {
+                avatarDiv.classList.add('user-avatar');
+                avatarDiv.innerText = 'أنت';
+            } else {
+                avatarDiv.classList.add('bot-avatar');
+                avatarDiv.innerText = 'AI';
+            }
+
+            const textDiv = document.createElement('div');
+            textDiv.classList.add('text-content');
+            
+            // تنسيق النص
+            let formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/\n/g, '<br>');
+
+            contentDiv.appendChild(avatarDiv);
+            contentDiv.appendChild(textDiv);
+            rowDiv.appendChild(contentDiv);
+            chatBox.appendChild(rowDiv);
+
+            if (animate) {
+                typeWriter(textDiv, formattedText);
+            } else {
+                textDiv.innerHTML = formattedText;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            displayMessage(text, 'user', false);
+            
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            userInput.disabled = true;
+            sendButton.disabled = true;
+            typingIndicator.style.display = 'block';
+
+            conversationHistory.push({ role: 'user', parts: [{ text: text }] });
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: conversationHistory })
+                });
+
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || response.statusText);
+                }
+
+                const botText = data.candidates?.[0]?.content?.parts?.[0]?.text || "عذراً، لم أستطع الرد.";
+                
+                conversationHistory.push({ role: 'model', parts: [{ text: botText }] });
+                
+                displayMessage(botText, 'bot', true);
+
+            } catch (error) {
+                console.error(error);
+                typingIndicator.style.display = 'none';
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                displayMessage(`حدث خطأ: ${error.message}`, 'bot', false);
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    </script>
+</body>
+</html>
